@@ -97,23 +97,35 @@ def search():
 
     unique_tokens = np.unique(query_tokens)
 
-    if len(query_tokens) >= 2:
+    if len(query_tokens) == 0:
+        return jsonify(res)
+
+    if len(query_tokens) > 2:
+        combined_scores = BM25(doc_id_len, query_tokens, body_index, body_index_path)
+    else:
+        if len(query_tokens) == 1:
+            body_weight = 1
+            title_weight = 0
+            anchor_weight = 0
+
+        if len(query_tokens) == 2:
+            body_weight = 0.8
+            title_weight = 0.12
+            anchor_weight = 0.08
+
         res_body = cosine_Similarity_calc(unique_tokens, body_index, body_index_path)
         res_anchor = cosine_Similarity_calc(unique_tokens, anchor_index, anchor_index_path)
         res_title = cosine_Similarity_calc(unique_tokens, title_index, title_index_path)
 
         combined_scores = defaultdict(float)
         for doc_id, score in res_body.items():
-            combined_scores[doc_id] += score * 0.7
+            combined_scores[doc_id] += score * body_weight
         for doc_id, score in res_title.items():
-            combined_scores[doc_id] += score * 0.2
+            combined_scores[doc_id] += score * title_weight
         for doc_id, score in res_anchor.items():
-            combined_scores[doc_id] += score * 0.1
-        res = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:100]
+            combined_scores[doc_id] += score * anchor_weight
 
-    elif len(query_tokens) == 1:
-        res_body = cosine_Similarity_calc(unique_tokens, body_index, body_index_path)
-        res = sorted(res_body.items(), key=lambda x: x[1], reverse=True)[:100]
+    res = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:100]
 
     res = get_doc_id_title_list(res, doc_id_title)
 

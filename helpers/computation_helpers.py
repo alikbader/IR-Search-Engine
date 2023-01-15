@@ -19,12 +19,13 @@ def cosine_Similarity_calc(query, index, path):
 
     scores = {}
     for term in query_vector:
-        posting_list = index.read_posting_list(term, path)
-        for doc_id, tf in posting_list:
-            if doc_id in scores:
-                scores[doc_id] += tf * query_vector[term] * math.log(number_of_docs / index.df[term], 10)
-            else:
-                scores[doc_id] = tf * query_vector[term] * math.log(number_of_docs / index.df[term], 10)
+        if term in index.df:
+            posting_list = index.read_posting_list(term, path)
+            for doc_id, tf in posting_list:
+                if doc_id in scores:
+                    scores[doc_id] += tf * query_vector[term] * math.log(number_of_docs / index.df[term], 10)
+                else:
+                    scores[doc_id] = tf * query_vector[term] * math.log(number_of_docs / index.df[term], 10)
 
     for doc_id in scores:
         scores[doc_id] = (scores[doc_id] / (
@@ -56,17 +57,3 @@ def cosine_Similarity(query, index, path, doc_id_len):
 
     return scores
 
-
-def calc_idf(query):
-    # calculate bm25 by the formula we learn at the class
-    idf = {}
-    for term in query:
-        if term not in body_index.term_total.keys():
-            idf[term] = 0
-        else:
-
-            mone = number_of_docs - body_index.df[term] + 0.5
-            mechane = body_index.df[term] + 0.5 + 1
-            idf[term] = math.log((mone / mechane) + 1)
-
-    return idf
