@@ -97,11 +97,14 @@ def search():
 
     unique_tokens = np.unique(query_tokens)
 
+    k = 1.7
+    b = 0.7
+
     if len(query_tokens) == 0:
         return jsonify(res)
 
     if len(query_tokens) > 2:
-        combined_scores = BM25(doc_id_len, query_tokens, body_index, body_index_path)
+        combined_scores = BM25(doc_id_len, query_tokens, body_index, body_index_path, k, b)
     else:
         if len(query_tokens) == 1:
             body_weight = 1
@@ -113,7 +116,7 @@ def search():
             title_weight = 0.2
             anchor_weight = 0.1
 
-        res_body = BM25(doc_id_len, query_tokens, body_index, body_index_path)
+        res_body = BM25(doc_id_len, query_tokens, body_index, body_index_path, k, b)
         res_anchor = cosine_Similarity_calc(unique_tokens, anchor_index, anchor_index_path)
         res_title = cosine_Similarity_calc(unique_tokens, title_index, title_index_path)
 
