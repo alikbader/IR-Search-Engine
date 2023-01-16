@@ -109,11 +109,11 @@ def search():
             anchor_weight = 0
 
         if len(query_tokens) == 2:
-            body_weight = 0.8
-            title_weight = 0.12
-            anchor_weight = 0.08
+            body_weight = 0.7
+            title_weight = 0.2
+            anchor_weight = 0.1
 
-        res_body = cosine_Similarity_calc(unique_tokens, body_index, body_index_path)
+        res_body = BM25(doc_id_len, query_tokens, body_index, body_index_path)
         res_anchor = cosine_Similarity_calc(unique_tokens, anchor_index, anchor_index_path)
         res_title = cosine_Similarity_calc(unique_tokens, title_index, title_index_path)
 
@@ -125,7 +125,9 @@ def search():
         for doc_id, score in res_anchor.items():
             combined_scores[doc_id] += score * anchor_weight
 
-    res = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:100]
+    res = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:10000]
+    res = sorted(res, key=lambda x: page_views[str(x[0])], reverse=True)[:1000]
+    res = sorted(res, key=lambda x: x[1], reverse=True)[:100]
 
     res = get_doc_id_title_list(res, doc_id_title)
 
